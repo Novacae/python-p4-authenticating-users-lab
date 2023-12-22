@@ -18,6 +18,38 @@ db.init_app(app)
 
 api = Api(app)
 
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.json.get('username')
+
+    user = User.query.filter_by(username=username).first()
+
+    if user:
+        session['user_id'] = user.id
+
+        return jsonify(user.to_dict()), 200
+    else:
+        error_message = {'message': 'User not found'}
+        return jsonify(error_message), 404
+    
+@app.route('/logout', methods=['DELETE'])    
+class Logout(Resource):
+   def logout():
+    session.pop('user_id', None)
+    return '', 204
+   
+@app.route('/check_session',method =['GET'])
+class CheckSession(Resource):
+    def get(self):
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.filter(User.id == user_id).first()
+            return user.to_dict(), 200
+        
+        return {}, 401
+
 class ClearSession(Resource):
 
     def delete(self):
